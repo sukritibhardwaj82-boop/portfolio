@@ -1,0 +1,44 @@
+# Publishes this website to GitHub Pages every time something lands on main.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # adds a "Run workflow" button in the Actions tab
+
+# What this workflow is allowed to do with your repo
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deploy at a time
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+
+      - name: Package the website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .           # the website lives at the top of the repo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
